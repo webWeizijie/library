@@ -21,6 +21,10 @@ export default new Vuex.Store({
     setUserInfo(state,userInfo){
       state.user.hasLogin = true;
       state.user.userInfo = userInfo
+      wx.showLoading({
+        title:'登录成功',
+        druation:2000
+      })
     }
   }
 

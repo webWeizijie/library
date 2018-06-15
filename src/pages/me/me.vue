@@ -15,8 +15,12 @@
         <img class="wave" src="../../images/more/wave.png" mode="aspectFill" />
         <img class="wave wave-bg" src="../../images/more/wave.png" mode="aspectFill" />
       </div>
-
-
+      <div class="content-box">
+        <div class="progressbar-cont">
+          <yearProgress></yearProgress>
+        </div>
+        <button class="add-book-btn" @click="scanCode">添加图书</button>
+      </div>
     </div>
   </div>
 
@@ -24,35 +28,19 @@
 </template>
 <script>
 import { mapGetters } from "vuex";
-import { getUserInfo } from "../../utils/biz.js";
+import { getUserInfo, request } from "../../utils/biz.js";
+import YearProgress from "@/components/yearProgress/yearProgress";
 import store from "../../store/index.js";
 
 const app = getApp();
 export default {
-  data(){
+  data() {
     return {
-      angle:0
-    }
+      angle: 0
+    };
   },
   created() {},
-  methods: {
-    userLogin(e) {
-      getUserInfo(e)
-        .then(result => {
-          wx.setStorage({
-            key: "userInfo",
-            data: result,
-            success: function(res) {}
-          });
-          store.commit("setUserInfo", result);
-        })
-        .catch(err => {
-          console.log(err);
-        });
-    }
-  },
   onReady() {
-
     // wx.onAccelerometerChange((res) => {
     //   let angle = -(res.x * 30).toFixed(1);
     //   if (angle > 14) { angle = 14; }
@@ -61,6 +49,76 @@ export default {
     //     this.angle = angle
     //   }
     // });
+  },
+  methods: {
+    userLogin(e) {
+      wx.showToast({
+        title: "获取中",
+        icon: "loading",
+        duration: 2000
+      });
+      getUserInfo(e)
+        .then(result => {
+          wx.setStorage({
+            key: "userInfo",
+            data: result,
+            success: function(res) {}
+          });
+          store.commit("setUserInfo", result);
+          wx.hideToast();
+        })
+        .catch(err => {
+          wx.hideToast();
+          console.log(err);
+        });
+    },
+    scanCode() {
+      wx.scanCode({
+        onlyFromCamera: true,
+        success: res => {
+          if (res.result) {
+            console.log(res.result)
+            this.addBook(res.result);
+          }
+        },
+        fail: err => {
+          console.log(err, "err");
+        }
+      });
+    },
+    async addBook(isbn) {
+      wx.showLoading({
+        title:'加载中'
+      })
+      const res = await request("POST", "/weapp/addbook", {
+        isbn,
+        openid: this.user.userInfo.openId
+      });
+      if (res.code === 0 && res.data.title) {
+        wx.hideLoading()
+        wx.showModal({
+          title: "添加成功",
+          content: `${res.data.title}添加成功`,
+          showCancel:false,
+          success: function(res) {
+
+          }
+        });
+      } else {
+        wx.hideLoading()
+        wx.showModal({
+          title: "添加失败",
+          content: `${res.data.msg}`,
+          showCancel:false,
+          success: function(res) {
+
+          }
+        });
+      }
+    }
+  },
+  components: {
+    YearProgress: YearProgress
   },
   computed: {
     user() {
@@ -71,10 +129,11 @@ export default {
 </script>
 <style scoped>
 .container {
-  max-width: 750rpx;
-  position: relative;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 750rpx;
   padding: 10rpx 0;
-  min-height: 1324rpx;
   background: #ea5149;
 }
 .user-info {
@@ -151,7 +210,7 @@ export default {
 
 .wave-bg {
   z-index: 1;
-  animation: wave-bg 10.25s linear infinite;
+  animation: wave-bg 9.75s linear infinite;
 }
 
 @keyframes wave {
@@ -186,5 +245,23 @@ export default {
     color-stop(0.1, #f4f4f4),
     to(#f4f4f4)
   );
+}
+.add-book-btn {
+  background: #ea5149;
+  color: #ffffff;
+  width: 640rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  margin: 0 auto 20rpx auto;
+  font-size: 32rpx;
+}
+.content-box {
+  width: 750rpx;
+  position: relative;
+  z-index: 19;
+}
+.progressbar-cont {
+  width: 640rpx;
+  margin: 90rpx auto 70rpx auto;
 }
 </style>

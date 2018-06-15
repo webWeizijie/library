@@ -3,8 +3,8 @@
 	"setting": {
 		"urlCheck": false,
 		"es6": false,
-		"postcss": true,
-		"minified": true,
+		"postcss": false,
+		"minified": false,
 		"newFeature": true
 	},
 	"miniprogramRoot": "./dist/",
@@ -12,6 +12,7 @@
 	"compileType": "miniprogram",
 	"appid": "wx00d27e14f92776f4",
 	"projectname": "mpvue",
+	"libVersion": "1.9.97",
 	"condition": {
 		"search": {
 			"current": -1,
